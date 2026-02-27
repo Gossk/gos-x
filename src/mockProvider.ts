@@ -3,7 +3,7 @@ export const MockProvider = {
     const last = messages[messages.length - 1].content;
     return {
       message: {
-        content: `✨ GOS-X dice: "${last}"`
+        content: `✨ GOS-X responde: "${last}" 💫 (simulación futurista)` 
       }
     };
   }

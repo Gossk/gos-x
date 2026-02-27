@@ -1,6 +1,6 @@
 import express from "express";
-import { runGOSX, initMemory } from "./agent.js"; // .js si ESM
 import cors from "cors";
+import { runGOSX, loadMemory } from "./agent.js"; // .js si ESM
 
 const app = express();
 app.use(cors());
@@ -8,7 +8,8 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 10000;
 
-await initMemory(); // cargar memoria al iniciar
+// Inicializar memoria al arrancar
+loadMemory().then(() => console.log("🧠 Memoria cargada"));
 
 app.post("/chat", async (req, res) => {
   const { message, sessionId } = req.body;
@@ -17,8 +18,8 @@ app.post("/chat", async (req, res) => {
   try {
     const reply = await runGOSX(message, sessionId);
     res.json({ reply });
-  } catch (e) {
-    console.error(e);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Error ejecutando GOS-X" });
   }
 });
