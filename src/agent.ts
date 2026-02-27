@@ -1,11 +1,9 @@
-import { MockProvider } from "./mockProvider"; // Tu proveedor de respuestas ficticias
+import { MockProvider } from "./mockProvider.js"; // .js si es compilado
 import fs from "fs-extra";
 
-const provider = MockProvider; // Ahora usamos nuestro mock
-
+const provider = MockProvider;
 const MEMORY_FILE = "./memory.json";
 
-// Cargar memoria desde archivo
 let sessions: Map<string, any[]> = new Map();
 
 async function loadMemory() {
@@ -15,13 +13,10 @@ async function loadMemory() {
   }
 }
 
-// Guardar memoria en archivo
 async function saveMemory() {
   const obj = Object.fromEntries(sessions);
   await fs.writeJson(MEMORY_FILE, obj, { spaces: 2 });
 }
-
-await loadMemory();
 
 export async function runGOSX(message: string, sessionId: string) {
   if (!sessions.has(sessionId)) {
@@ -33,7 +28,6 @@ export async function runGOSX(message: string, sessionId: string) {
   const history = sessions.get(sessionId)!;
   history.push({ role: "user", content: message });
 
-  // Usamos MockProvider en vez de OpenAI
   const reply = await provider.complete({ messages: history });
 
   history.push({ role: "assistant", content: reply.message.content });
@@ -41,4 +35,9 @@ export async function runGOSX(message: string, sessionId: string) {
   await saveMemory();
 
   return reply.message.content;
+}
+
+// Inicialización al arrancar
+export async function initMemory() {
+  await loadMemory();
 }
