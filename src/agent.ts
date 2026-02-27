@@ -1,9 +1,7 @@
-import OpenAI from "openai"
+import { MockProvider } from "./mockProvider";
 import fs from "fs-extra"
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+const provider = MockProvider;
 
 const MEMORY_FILE = "./memory.json"
 
