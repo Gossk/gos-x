@@ -1,8 +1,8 @@
-// src/agent.ts
-import { MockProvider } from "./mockProvider";
+import { MockProvider } from "./mockProvider"; // Tu proveedor de respuestas ficticias
 import fs from "fs-extra";
 
-const provider = MockProvider;
+const provider = MockProvider; // Ahora usamos nuestro mock
+
 const MEMORY_FILE = "./memory.json";
 
 // Cargar memoria desde archivo
@@ -26,21 +26,19 @@ await loadMemory();
 export async function runGOSX(message: string, sessionId: string) {
   if (!sessions.has(sessionId)) {
     sessions.set(sessionId, [
-      { role: "system", content: "You are GOS-X, an intelligent assistant creado por Gossk." },
+      { role: "system", content: "You are GOS-X, an intelligent assistant created by Gossk." }
     ]);
   }
 
   const history = sessions.get(sessionId)!;
   history.push({ role: "user", content: message });
 
-  // Llamada al MockProvider
-  const completion = await provider.complete({ messages: history });
+  // Usamos MockProvider en vez de OpenAI
+  const reply = await provider.complete({ messages: history });
 
-  const reply = completion.message.content || "";
-
-  history.push({ role: "assistant", content: reply });
+  history.push({ role: "assistant", content: reply.message.content });
 
   await saveMemory();
 
-  return reply;
+  return reply.message.content;
 }
