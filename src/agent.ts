@@ -1,48 +1,46 @@
+// src/agent.ts
 import { MockProvider } from "./mockProvider";
-import fs from "fs-extra"
+import fs from "fs-extra";
 
 const provider = MockProvider;
-
-const MEMORY_FILE = "./memory.json"
+const MEMORY_FILE = "./memory.json";
 
 // Cargar memoria desde archivo
-let sessions: Map<string, any[]> = new Map()
+let sessions: Map<string, any[]> = new Map();
 
 async function loadMemory() {
   if (await fs.pathExists(MEMORY_FILE)) {
-    const data = await fs.readJson(MEMORY_FILE)
-    sessions = new Map(Object.entries(data))
+    const data = await fs.readJson(MEMORY_FILE);
+    sessions = new Map(Object.entries(data));
   }
 }
 
 // Guardar memoria en archivo
 async function saveMemory() {
-  const obj = Object.fromEntries(sessions)
-  await fs.writeJson(MEMORY_FILE, obj, { spaces: 2 })
+  const obj = Object.fromEntries(sessions);
+  await fs.writeJson(MEMORY_FILE, obj, { spaces: 2 });
 }
 
-await loadMemory()
+await loadMemory();
 
 export async function runGOSX(message: string, sessionId: string) {
   if (!sessions.has(sessionId)) {
     sessions.set(sessionId, [
-      { role: "system", content: "You are GOS-X, an intelligent assistant created by Gossk." }
-    ])
+      { role: "system", content: "You are GOS-X, an intelligent assistant creado por Gossk." },
+    ]);
   }
 
-  const history = sessions.get(sessionId)!
-  history.push({ role: "user", content: message })
+  const history = sessions.get(sessionId)!;
+  history.push({ role: "user", content: message });
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: history
-  })
+  // Llamada al MockProvider
+  const completion = await provider.complete({ messages: history });
 
-  const reply = completion.choices[0].message.content || ""
+  const reply = completion.message.content || "";
 
-  history.push({ role: "assistant", content: reply })
+  history.push({ role: "assistant", content: reply });
 
-  await saveMemory()
+  await saveMemory();
 
-  return reply
+  return reply;
 }

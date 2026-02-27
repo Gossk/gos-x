@@ -1,32 +1,30 @@
-import "dotenv/config"
-import express from "express"
-import cors from "cors"
-import { runGOSX } from "./agent.js"
+// src/server.ts
+import express from "express";
+import cors from "cors";
+import { runGOSX } from "./agent";
 
-const app = express()
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-app.use(cors())
-app.use(express.json())
-app.use(express.static("public"))
+const PORT = process.env.PORT || 10000;
 
 app.post("/chat", async (req, res) => {
   try {
-    const { message, sessionId } = req.body
+    const { message, sessionId } = req.body;
 
-    const reply = await runGOSX(
-      message,
-      sessionId || "default"
-    )
+    if (!message || !sessionId) {
+      return res.status(400).json({ error: "Se requiere message y sessionId" });
+    }
 
-    res.json({ reply })
-  } catch (error) {
-    console.error(error)
-    res.status(500).json({ error: "GOS-X internal error" })
+    const reply = await runGOSX(message, sessionId);
+    res.json({ reply });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error interno del servidor" });
   }
-})
-
-const PORT = process.env.PORT || 3000
+});
 
 app.listen(PORT, () => {
-  console.log(`🚀 GOS-X running on port ${PORT}`)
-})
+  console.log(`🚀 GOS-X corriendo en puerto ${PORT}`);
+});

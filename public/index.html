@@ -1,52 +1,158 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>GOS-X</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GOS-X AI Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial; background:#111; color:white; padding:20px }
-    #chat { max-width:600px; margin:auto }
-    .msg { margin:10px 0 }
-    .user { color:#00ffcc }
-    .bot { color:#ffffff }
-    input { width:80%; padding:10px }
-    button { padding:10px }
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    header {
+      text-align: center;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.6);
+      box-shadow: 0 0 10px #0ff;
+      letter-spacing: 2px;
+      font-size: 1.5rem;
+      text-transform: uppercase;
+    }
+
+    #chat {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .message {
+      max-width: 70%;
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
+      animation: fadeIn 0.5s;
+      word-wrap: break-word;
+    }
+
+    .user {
+      align-self: flex-end;
+      background: #0ff;
+      color: #000;
+    }
+
+    .assistant {
+      align-self: flex-start;
+      background: #1e1e2f;
+      border: 1px solid #0ff;
+      color: #0ff;
+    }
+
+    #input-area {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      background: rgba(0,0,0,0.5);
+    }
+
+    #message {
+      flex: 1;
+      padding: 0.8rem;
+      border-radius: 12px;
+      border: none;
+      outline: none;
+      background: #222;
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    #send {
+      padding: 0.8rem 1rem;
+      border: none;
+      border-radius: 12px;
+      background: #0ff;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    #send:hover {
+      transform: scale(1.1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
-  <div id="chat">
-    <h1>🤖 GOS-X</h1>
-    <div id="messages"></div>
-    <input id="input" placeholder="Escribe algo..." />
-    <button onclick="send()">Enviar</button>
+  <header>GOS-X AI Assistant</header>
+
+  <div id="chat"></div>
+
+  <div id="input-area">
+    <input type="text" id="message" placeholder="Escribe algo..." />
+    <button id="send">Enviar</button>
   </div>
 
-<script>
-const sessionId = "user-" + Math.random().toString(36).substring(2)
-const messages = document.getElementById("messages")
+  <script>
+    const chat = document.getElementById('chat');
+    const messageInput = document.getElementById('message');
+    const sendButton = document.getElementById('send');
 
-function addMessage(text, cls){
-  const div = document.createElement("div")
-  div.className = "msg " + cls
-  div.innerText = text
-  messages.appendChild(div)
-}
+    const sessionId = 'usuario1'; // Se puede generar dinámico si quieres varias sesiones
 
-async function send(){
-  const input = document.getElementById("input")
-  const text = input.value
-  input.value = ""
+    function addMessage(content, role) {
+      const div = document.createElement('div');
+      div.className = `message ${role}`;
+      div.textContent = content;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
 
-  addMessage("Tú: " + text, "user")
+    async function sendMessage() {
+      const message = messageInput.value.trim();
+      if (!message) return;
 
-  const res = await fetch("/chat", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ message:text, sessionId })
-  })
+      addMessage(message, 'user');
+      messageInput.value = '';
 
-  const data = await res.json()
-  addMessage("GOS-X: " + data.reply, "bot")
-}
-</script>
+      // Mensaje de "pensando" animado
+      const thinkingDiv = document.createElement('div');
+      thinkingDiv.className = 'message assistant';
+      thinkingDiv.textContent = '🤖 GOS-X está pensando...';
+      chat.appendChild(thinkingDiv);
+      chat.scrollTop = chat.scrollHeight;
+
+      try {
+        const res = await fetch('https://gos-x.onrender.com/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, sessionId })
+        });
+        const data = await res.json();
+        thinkingDiv.textContent = data.reply || '🤖 Sin respuesta';
+      } catch (err) {
+        thinkingDiv.textContent = '⚠️ Error al conectar con GOS-X';
+        console.error(err);
+      }
+    }
+
+    sendButton.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+  </script>
 </body>
 </html>
