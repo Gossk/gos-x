@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GOS-X</title>
+  <style>
+    body { font-family: Arial; background:#111; color:white; padding:20px }
+    #chat { max-width:600px; margin:auto }
+    .msg { margin:10px 0 }
+    .user { color:#00ffcc }
+    .bot { color:#ffffff }
+    input { width:80%; padding:10px }
+    button { padding:10px }
+  </style>
+</head>
+<body>
+  <div id="chat">
+    <h1>🤖 GOS-X</h1>
+    <div id="messages"></div>
+    <input id="input" placeholder="Escribe algo..." />
+    <button onclick="send()">Enviar</button>
+  </div>
+
+<script>
+const sessionId = "user-" + Math.random().toString(36).substring(2)
+const messages = document.getElementById("messages")
+
+function addMessage(text, cls){
+  const div = document.createElement("div")
+  div.className = "msg " + cls
+  div.innerText = text
+  messages.appendChild(div)
+}
+
+async function send(){
+  const input = document.getElementById("input")
+  const text = input.value
+  input.value = ""
+
+  addMessage("Tú: " + text, "user")
+
+  const res = await fetch("/chat", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ message:text, sessionId })
+  })
+
+  const data = await res.json()
+  addMessage("GOS-X: " + data.reply, "bot")
+}
+</script>
+</body>
+</html>
